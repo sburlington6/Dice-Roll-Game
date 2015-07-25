@@ -1,15 +1,13 @@
 <?php
 session_start();
 
+$topScore = (isset($_SESSION['topScore']) ? $_SESSION['topScore'] : 0);
+
 $currentFile = $_SERVER["PHP_SELF"];
 $parts = Explode('/', $currentFile);
 $filename = $parts[count($parts) - 1];
 
 if (isset($_POST['newGame']))
-{
-	header( "Location: $filename" ) ;
-}
-if (isset($_POST['resetScores']))
 {
 	header( "Location: $filename" ) ;
 }
@@ -23,10 +21,6 @@ if (isset($_POST['reset']))
 if (!isset($_SESSION['score']))
 {
 	$_SESSION['score'] = array();
-}
-if (!isset($_SESSION['total']))
-{
-	$_SESSION['total'] = '';
 }
 
 if (!isset($_SESSION['roll']))
@@ -114,25 +108,20 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 				$_SESSION['score'][$i] = 0;
 			}
 			
-			$_SESSION['topScore'] = 0;
+			
 			for ($j=1;$j<=6;$j++)
 			{
 				if (isset($_SESSION['score'][$j]))
 				{
-					$_SESSION['topScore'] = $_SESSION['topScore'] + $_SESSION['score'][$j];
+					$topScore = $topScore + $_SESSION['score'][$j];
 				}
 			}
-			if (!isset($_SESSION['score']['bonus']) AND $_SESSION['topScore'] > 63)
+			if (!isset($_SESSION['score']['bonus']) AND $topScore > 63)
 			{
 				$_SESSION['score']['bonus'] = 35;
 			}
 			
-			$_SESSION['selection'] = '1';
-			unset($_SESSION['roll']);
-			unset($_SESSION['hold']);
-			unset($_SESSION['die']);
-			unset($_SESSION['selection']);
-			header( "Location: $filename" ) ;
+			rollReset();
 		}
 	}
 	
@@ -153,12 +142,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		{
 			$_SESSION['score']['3kind'] = 0;
 		}
-		$_SESSION['selection'] = '1';
-		unset($_SESSION['roll']);
-		unset($_SESSION['hold']);
-		unset($_SESSION['die']);
-		unset($_SESSION['selection']);
-		header( "Location: $filename" ) ;
+		rollReset();
 	}
 	elseif ($_POST['type'] == '4kind')
 	{
@@ -177,12 +161,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		{
 			$_SESSION['score']['4kind'] = 0;
 		}
-		$_SESSION['selection'] = '1';
-		unset($_SESSION['roll']);
-		unset($_SESSION['hold']);
-		unset($_SESSION['die']);
-		unset($_SESSION['selection']);
-		header( "Location: $filename" ) ;
+		rollReset();
 	}
 	elseif ($_POST['type'] == 'fullHouse')
 	{
@@ -199,12 +178,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		{
 			$_SESSION['score']['fullHouse'] = 0;
 		}
-		$_SESSION['selection'] = '1';
-		unset($_SESSION['roll']);
-		unset($_SESSION['hold']);
-		unset($_SESSION['die']);
-		unset($_SESSION['selection']);
-		header( "Location: $filename" ) ;
+		rollReset();
 	}
 	elseif ($_POST['type'] == 'sStraight')
 	{
@@ -220,12 +194,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		{
 			$_SESSION['score']['sStraight'] = 0;
 		}
-		$_SESSION['selection'] = '1';
-		unset($_SESSION['roll']);
-		unset($_SESSION['hold']);
-		unset($_SESSION['die']);
-		unset($_SESSION['selection']);
-		header( "Location: $filename" ) ;
+		rollReset();
 	}
 	elseif ($_POST['type'] == 'lStraight')
 	{
@@ -241,12 +210,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		{
 			$_SESSION['score']['lStraight'] = 0;
 		}
-		$_SESSION['selection'] = '1';
-		unset($_SESSION['roll']);
-		unset($_SESSION['hold']);
-		unset($_SESSION['die']);
-		unset($_SESSION['selection']);
-		header( "Location: $filename" ) ;
+		rollReset();
 	}
 	elseif ($_POST['type'] == 'yahtzee')
 	{
@@ -277,12 +241,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 				$_SESSION['score']['yahtzee'] = 0;
 			}
 		}
-		$_SESSION['selection'] = '1';
-		unset($_SESSION['roll']);
-		unset($_SESSION['hold']);
-		unset($_SESSION['die']);
-		unset($_SESSION['selection']);
-		header( "Location: $filename" ) ;
+		rollReset();
 	}
 	elseif ($_POST['type'] == 'chance')
 	{
@@ -293,12 +252,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		}
 		$_SESSION['score']['chance'] = $score;
 		
-		$_SESSION['selection'] = '1';
-		unset($_SESSION['roll']);
-		unset($_SESSION['hold']);
-		unset($_SESSION['die']);
-		unset($_SESSION['selection']);
-		header( "Location: $filename" ) ;
+		rollReset();
 	}
 }
 
@@ -309,119 +263,152 @@ foreach($_SESSION['score'] as $type)
 	$totalScore = $totalScore + $type;
 }
 
+
+function rollReset(){
+	global $filename;
+	$_SESSION['selection'] = '1';
+	unset($_SESSION['roll']);
+	unset($_SESSION['hold']);
+	unset($_SESSION['die']);
+	unset($_SESSION['selection']);
+	header( "Location: $filename" ) ;
+}
 ?>
 
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!doctype html>
+
+<html lang="en">
 	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta charset="utf-8">
+		<meta name="description" content="Dice Roll Game">
+		<meta name="author" content="Richard Bird">
 		<title>Yahtzee</title>
 		<link href="yahtzee.css" rel="stylesheet" type="text/css" />
+		
+		<!--[if lt IE 9]>
+			<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		
 	</head>
 	<body>
 		<div id="wrapper">
 			<div id="game">
+				
+				<h2>Roll <?php echo $_SESSION['roll']; ?></h2>
+				<table id="dice">
+					<tr>
+					<?php
+						for ($i=1;$i<=5;$i++)
+						{
+							?>
+							<td class="diceWrapper">
+								<image class="dice" src="images/dice/<?php echo $_SESSION['die'][$i]; ?>.png" alt="dice">
+							</td>
+							<?php
+						}
+						?>
+					</tr>
+					<tr>
+					<?php
+						for ($i=1;$i<=5;$i++)
+						{
+							echo '<td class="hold">';
+							if ($_SESSION['roll'] > 0)
+							{
+								if (isset($_SESSION['hold'][$i]) AND $_SESSION['hold'][$i])
+								{
+									echo '<form action="'.$filename.'" method="post">';
+										echo '<input type="hidden" value="'.$i.'" name="unhold"/>';
+										echo '<input type="submit" value="Unold" name="unholdsubmit"/>';
+									echo '</form>';
+								}
+								else
+								{
+									echo '<form action="'.$filename.'" method="post">';
+										echo '<input type="hidden" value="'.$i.'" name="hold"/>';
+										echo '<input type="submit" value="Hold" name="holdsubmit"/>';
+									echo '</form>';
+								}
+							}
+							echo '</td>';
+						}
+						?>
+					</tr>
+				</table>
 				<?php
-				echo '<h2>Roll '.$_SESSION['roll'].'</h2>';
-					echo '<table id="dice">';
-						echo '<tr>';
-							for ($i=1;$i<=5;$i++)
-							{
-								echo '<td class="dice">';
-								if ($_SESSION['roll'] > 0)
-								{
-									echo '<image src="images/dice/'.$_SESSION['die'][$i].'.png" alt="dice" height="60" width="60">';
-								}
-								echo '</td>';
-							}
-						echo '</tr>';
-						echo '<tr>';
-							for ($i=1;$i<=5;$i++)
-							{
-								echo '<td class="hold">';
-								if ($_SESSION['roll'] > 0)
-								{
-									if (isset($_SESSION['hold'][$i]) AND $_SESSION['hold'][$i])
-									{
-										echo '<form action="'.$filename.'" method="post">';
-											echo '<input type="hidden" value="'.$i.'" name="unhold"/>';
-											echo '<input type="submit" value="Unold" name="unholdsubmit"/>';
-										echo '</form>';
-									}
-									else
-									{
-										echo '<form action="'.$filename.'" method="post">';
-											echo '<input type="hidden" value="'.$i.'" name="hold"/>';
-											echo '<input type="submit" value="Hold" name="holdsubmit"/>';
-										echo '</form>';
-									}
-								}
-								echo '</td>';
-							}
-						echo '</tr>';
-					echo '</table>';
-					
-					if ($_SESSION['roll'] < 3)
-					{
-						echo '<form action="'.$filename.'" method="post">';
-							echo '<input type="submit" value="Roll" name="roll"/>';
-						echo '</form>';
-					}
+				if ($_SESSION['roll'] < 3)
+				{
 					echo '<form action="'.$filename.'" method="post">';
-						echo '<input type="submit" value="NEW GAME" name="reset"/>';
+						echo '<input type="submit" value="Roll" name="roll"/>';
 					echo '</form>';
-			echo '</div>';
+				}
+				?>
+				<form action="<?php echo $filename; ?>" method="post">
+					<input type="submit" value="NEW GAME" name="reset"/>
+				</form>
+			</div>
 			
-			echo '<div id="scoreCard">';
-			echo 	'<table>';
-			echo 		'<tr>';
-			echo 			'<th></th>';
-			echo 			'<th></th>';
-			echo 			'<th>How to Score</th>';
-			echo 			'<th>Score</th>';
-			echo 		'</tr>';
-		for ($i=1;$i<=6;$i++)
-		{
-			echo 		'<tr>';
-			echo 			'<td class="select">';
-							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score'][$i]))
-							{
-			echo 				'<form action="'.$filename.'" method="post">';
-			echo 					'<input type="hidden" value="'.$i.'s" name="type"/>';
-			echo 					'<input type="submit" value="Select" name="select"/>';
-			echo 				'</form>';
-							}
-			echo 			'</td>';
-			echo 			'<td class="type">'.$i.'\'s</td>';
-			echo 			'<td class="how">Add up all of the '.$i.'\'s</td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['score'][$i]))
+			<div id="debug">
+				_SESSION
+				<pre>
+				<?php var_dump($_SESSION);?>
+				</pre>
+				_POST
+				<pre>
+				<?php var_dump($_POST);?>
+				</pre>
+			</div>
+			
+			<div id="scoreCard">
+				<table>
+					<tr>
+						<th></th>
+						<th></th>
+						<th>How to Score</th>
+						<th>Score</th>
+					</tr>
+			<?php
+			for ($i=1;$i<=6;$i++)
+			{
+				?>
+				 	<tr>
+						<td class="select">
+				<?php
+								if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score'][$i]))
 								{
-									echo $_SESSION['score'][$i];
+				echo 				'<form action="'.$filename.'" method="post">';
+				echo 					'<input type="hidden" value="'.$i.'s" name="type"/>';
+				echo 					'<input type="submit" value="Select" name="select"/>';
+				echo 				'</form>';
 								}
-			echo 			'</td>';
-			echo 		'</tr>';
-		}
+				echo 			'</td>';
+				echo 			'<td class="type">'.$i.'\'s</td>';
+				echo 			'<td class="how">Add up all of the '.$i.'\'s</td>';
+				echo 			'<td class="player">';
+									if (isset($_SESSION['score'][$i]))
+									{
+										echo $_SESSION['score'][$i];
+									}
+				echo 	'</td>';
+				echo '</tr>';
+			}
+			?>
+					<tr class ="score">
+						<td class="select"></td>
+						<td class="type">Total Top</td>
+						<td class="how">The total Score of 1's - 6's</td>
+						<td class="player">
+							<?php echo $topScore;?>
+						</td>
+			 		</tr>
 			
-			echo 		'<tr class ="score">';
-			echo 			'<td class="select"></td>';
-			echo 			'<td class="type">Total Top</td>';
-			echo 			'<td class="how">The total Score of 1\'s - 6\'s</td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['topScore']))
-								{
-									echo $_SESSION['topScore'];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			
-			echo 		'<tr class ="score">';
-			echo 			'<td class="select"></td>';
-			echo 			'<td class="type">Bonus</td>';
-			echo 			'<td class="how">If the total Score of 1\'s - 6\'s is over 63 Add 35 Points</td>';
-			echo 			'<td class="player">';
+			 		<tr class ="score">
+			 			<td class="select"></td>
+						<td class="type">Bonus</td>
+						<td class="how">If the total Score of 1\'s - 6\'s is over 63 Add 35 Points</td>
+						<td class="player">
+			<?php
 								if (isset($_SESSION['score']['bonus']))
 								{
 									echo $_SESSION['score']['bonus'];
@@ -558,31 +545,28 @@ foreach($_SESSION['score'] as $type)
 			echo 					'<input type="submit" value="Select" name="select"/>';
 			echo 				'</form>';
 							}
-			echo 			'</td>';
-			echo 			'<td class="type">Chance</td>';
-			echo 			'<td class="how">Adds the Total of All Dice</td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['score']['chance']))
-								{
-									echo $_SESSION['score']['chance'];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
+							?>
+			 			</td>
+			 			<td class="type">Chance</td>
+			 			<td class="how">Adds the Total of All Dice</td>
+			 			<td class="player">
+							<?php
+							if (isset($_SESSION['score']['chance']))
+							{
+								echo $_SESSION['score']['chance'];
+							}
+							?>
+			 			</td>
+			 		</tr>
 			
-			echo 		'<tr class ="score">';
-			echo 			'<td class="select"></td>';
-			echo 			'<td class="type"></td>';
-			echo 			'<td class="type" style="text-align: right;">Total Score</td>';
-			echo 			'<td class="player">';
-								if (isset($totalScore))
-								{
-									echo $totalScore;
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			echo 	'</table>';
-			echo '</div>';
-			?>
+			 		<tr class="score">
+			 			<td colspan="3" style="text-align: right;">Total Score</td>
+						<td class="player">
+							<?php echo $totalScore;?>
+						</td>
+					</tr>
+				</table>
+			</div>
 		</div>
 	</body>
 </html>
