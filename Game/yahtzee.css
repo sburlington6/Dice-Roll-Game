@@ -1,0 +1,90 @@
+body{
+	background: #ccc;
+}
+
+#wrapper{
+border: 1px solid #000;
+padding: 10px;
+position: relative;
+
+	-moz-border-radius: 10px;
+	-khtml-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-moz-box-shadow: 0px 0px 80px rgba(0,0,0,0.3);
+	-khtml-box-shadow: 0px 0px 80px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0px 0px 80px rgba(0,0,0,0.3);	
+}
+/*game*/
+#game{
+	border: 1px solid #000;
+	position: absolute;
+}
+#game table td{
+	border: 1px solid #000;
+	vertical-align: top;
+	text-align: center;
+	padding: 0;
+}
+#game h2{
+	text-align: center;
+}
+#game > form{
+	margin: 10px;
+}
+
+.dice{
+width: 60px;
+height: 65px;
+}
+
+.hold{
+width: 65px;
+height: 40px;
+}
+/*game end*/
+
+/*score card*/
+#scoreCard{
+	width: 700px;
+	margin-left: 500px;
+	border: 1px solid #000;
+}
+#scoreCard td,#scoreCard th{
+	border: 1px solid #000;
+}
+
+.how,.type,.player{
+	padding: 5px;
+}
+
+.select{
+height: 40px;
+width: 80px;
+text-align: center;
+}
+
+.type{
+text-align: center;
+}
+
+/*end score card*/
+
+input[type=submit]{
+	background: #88671a;
+	color: #fff;
+	padding: 5px 10px 5px;
+	border: 2px solid #000;
+	-moz-border-radius: 5px;
+	-khtml-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	cursor:pointer;
+}
+input[type=submit]:hover{
+	background: #bb9a4d;
+}
+
+form{
+text-align: center;
+}
+
+
