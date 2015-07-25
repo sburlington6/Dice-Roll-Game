@@ -5,7 +5,7 @@ $currentFile = $_SERVER["PHP_SELF"];
 $parts = Explode('/', $currentFile);
 $filename = $parts[count($parts) - 1];
 
-$topScore = (isset($_SESSION['topScore']) ? $_SESSION['topScore'] : 0);
+$type = (isset($_POST['type']) ? $_POST['type'] : '');
 
 $types = array(
 '1',
@@ -143,12 +143,11 @@ function score($type)
 
 if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 {
-	score($_POST['type']);
+	score($type);
 }
 
 if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 {
-	$type = $_POST['type'];
 	
 	//score 1-6
 	for ($j=1;$j<=5;$j++)
@@ -165,22 +164,10 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		$_SESSION['score'][$type] = 0;
 	}
 	
-	for ($j=1;$j<=6;$j++)
-	{
-		if (isset($_SESSION['score'][$j]))
-		{
-			$topScore = $topScore + $_SESSION['score'][$j];
-		}
-	}
-	if (!isset($_SESSION['score']['bonus']) AND $topScore > 63)
-	{
-		$_SESSION['score']['bonus'] = 35;
-	}
-	
 	rollReset();
 	
 	//score 3kind
-	if ($_POST['type'] == '3kind')
+	if ($type == '3kind')
 	{
 		$inThere = array(0,0,0,0,0,0,0);
 		$score = 0;
@@ -199,7 +186,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		}
 		rollReset();
 	}
-	elseif ($_POST['type'] == '4kind')
+	elseif ($type == '4kind')
 	{
 		$inThere = array(0,0,0,0,0,0,0);
 		$score = 0;
@@ -218,7 +205,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		}
 		rollReset();
 	}
-	elseif ($_POST['type'] == 'fullHouse')
+	elseif ($type == 'fullHouse')
 	{
 		$inThere = array(0,0,0,0,0,0,0);
 		for ($j=1;$j<=5;$j++)
@@ -235,11 +222,12 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		}
 		rollReset();
 	}
-	elseif ($_POST['type'] == 'sStraight')
+	elseif ($type == 'sStraight')
 	{
+		$die=array();
 		for ($j=1;$j<=5;$j++)
 		{
-			$die[] = $_SESSION['die'][$j];
+			$die[$j] = $_SESSION['die'][$j];
 		}
 		if ((in_array(1,$die) AND in_array(2,$die) AND in_array(3,$die) AND in_array(4,$die)) OR (in_array(2,$die) AND in_array(3,$die) AND in_array(4,$die) AND in_array(5,$die)) OR (in_array(3,$die) AND in_array(4,$die) AND in_array(5,$die) AND in_array(6,$die)))
 		{
@@ -251,7 +239,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		}
 		rollReset();
 	}
-	elseif ($_POST['type'] == 'lStraight')
+	elseif ($type == 'lStraight')
 	{
 		for ($j=1;$j<=5;$j++)
 		{
@@ -267,7 +255,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		}
 		rollReset();
 	}
-	elseif ($_POST['type'] == 'yahtzee')
+	elseif ($type == 'yahtzee')
 	{
 		$inThere = array(0,0,0,0,0,0,0);
 		for ($j=1;$j<=5;$j++)
@@ -298,7 +286,7 @@ if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 		}
 		rollReset();
 	}
-	elseif ($_POST['type'] == 'chance')
+	elseif ($type == 'chance')
 	{
 		$score = 0;
 		for ($j=1;$j<=5;$j++)
@@ -318,6 +306,18 @@ foreach($_SESSION['score'] as $type)
 	$totalScore = $totalScore + $type;
 }
 
+$topScore =  0;
+for ($j=1;$j<=6;$j++)
+{
+	if (isset($_SESSION['score'][$j]))
+	{
+		$topScore = $topScore + $_SESSION['score'][$j];
+	}
+}
+if (!isset($_SESSION['score']['bonus']) AND $topScore > 63)
+{
+	$_SESSION['score']['bonus'] = 35;
+}
 
 function rollReset(){
 	global $filename;
@@ -348,137 +348,140 @@ function rollReset(){
 	</head>
 	<body>
 		<div id="wrapper">
-			<div id="game">
-				
-				<h2>Roll <?php echo $_SESSION['roll']; ?></h2>
-				<table id="dice">
-					<tr>
-					<?php
-						for ($i=1;$i<=5;$i++)
-						{
-							?>
-							<td class="diceWrapper">
-								<image class="dice" src="images/dice/<?php echo $_SESSION['die'][$i]; ?>.png" alt="dice">
-							</td>
-							<?php
-						}
-						?>
-					</tr>
-					<tr>
-					<?php
-						for ($i=1;$i<=5;$i++)
-						{
-							echo '<td class="hold">';
-							if ($_SESSION['roll'] > 0)
+			<div id="left">
+				<div id="game" class="center">
+					
+					<h2>Roll <?php echo $_SESSION['roll']; ?></h2>
+					<table id="dice">
+						<tr>
+						<?php
+							for ($i=1;$i<=5;$i++)
 							{
-								if (isset($_SESSION['hold'][$i]) AND $_SESSION['hold'][$i])
+								?>
+								<td class="diceWrapper">
+									<image class="dice" src="images/dice/<?php echo $_SESSION['die'][$i]; ?>.png" alt="dice">
+								</td>
+								<?php
+							}
+							?>
+						</tr>
+						<tr>
+						<?php
+							for ($i=1;$i<=5;$i++)
+							{
+								echo '<td class="hold">';
+								if ($_SESSION['roll'] > 0)
 								{
-									echo '<form action="'.$filename.'" method="post">';
-										echo '<input type="hidden" value="'.$i.'" name="unhold"/>';
-										echo '<input type="submit" value="Unold" name="unholdsubmit"/>';
-									echo '</form>';
+									if (isset($_SESSION['hold'][$i]) AND $_SESSION['hold'][$i])
+									{
+										echo '<form action="'.$filename.'" method="post">';
+											echo '<input type="hidden" value="'.$i.'" name="unhold"/>';
+											echo '<input type="submit" value="Unold" name="unholdsubmit"/>';
+										echo '</form>';
+									}
+									else
+									{
+										echo '<form action="'.$filename.'" method="post">';
+											echo '<input type="hidden" value="'.$i.'" name="hold"/>';
+											echo '<input type="submit" value="Hold" name="holdsubmit"/>';
+										echo '</form>';
+									}
+								}
+								echo '</td>';
+							}
+							?>
+						</tr>
+					</table>
+					<?php
+					if ($_SESSION['roll'] < 3)
+					{
+						echo '<form  class="inline" action="'.$filename.'" method="post">';
+							echo '<input type="submit" value="Roll" name="roll"/>';
+						echo '</form>';
+					}
+					?>
+					<form class="inline" action="<?php echo $filename; ?>" method="post">
+						<input type="submit" value="NEW GAME" name="reset"/>
+					</form>
+				</div>
+			
+				<div id="debug">
+					_SESSION
+					<pre>
+					<?php var_dump($_SESSION);?>
+					</pre>
+					_POST
+					<pre>
+					<?php var_dump($_POST);?>
+					</pre>
+				</div>
+			</div>
+			<div id="right">
+				<div id="scoreCard">
+					<table>
+						<tr>
+							<th colspan="3">Score Card</th>
+						</tr>
+				<?php
+				
+				for ($i=0;$i<count($types);$i++)
+				{
+					
+				echo 		'<tr>';
+								if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score'][$types[$i]]) AND $_SESSION['roll'] >0)
+								{
+				echo 			'<td class="select center">';
+				echo 				'<form action="'.$filename.'" method="post">';
+				echo 					'<input type="hidden" value="'.$types[$i].'" name="type"/>';
+				echo 					'<input type="submit" value="'.$names[$i].'" name="select"/>';
+				echo 				'</form>';
+				
+				echo 			'</td>';
 								}
 								else
 								{
-									echo '<form action="'.$filename.'" method="post">';
-										echo '<input type="hidden" value="'.$i.'" name="hold"/>';
-										echo '<input type="submit" value="Hold" name="holdsubmit"/>';
-									echo '</form>';
+									
+				echo 			'<td class="center">'.$names[$i].'</td>';
 								}
-							}
-							echo '</td>';
-						}
-						?>
-					</tr>
-				</table>
-				<?php
-				if ($_SESSION['roll'] < 3)
-				{
-					echo '<form action="'.$filename.'" method="post">';
-						echo '<input type="submit" value="Roll" name="roll"/>';
-					echo '</form>';
+				echo 			'<td class="how">'.$descriptions[$i].'</td>';
+				echo 			'<td class="player">';
+									if (isset($_SESSION['score'][$types[$i]]))
+									{
+										echo $_SESSION['score'][$types[$i]];
+									}
+				echo 			'</td>';
+				echo 		'</tr>';
 				}
-				?>
-				<form action="<?php echo $filename; ?>" method="post">
-					<input type="submit" value="NEW GAME" name="reset"/>
-				</form>
-			</div>
-			
-			<div id="debug">
-				_SESSION
-				<pre>
-				<?php var_dump($_SESSION);?>
-				</pre>
-				_POST
-				<pre>
-				<?php var_dump($_POST);?>
-				</pre>
-			</div>
-			
-			<div id="scoreCard">
-				<table>
-					<tr>
-						<th></th>
-						<th></th>
-						<th>How to Score</th>
-						<th>Score</th>
-					</tr>
-			<?php
-			
-			for ($i=0;$i<count($types);$i++)
-			{
 				
-			echo 		'<tr>';
-			echo 			'<td class="select">';
-							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score'][$types[$i]]))
-							{
-			echo 				'<form action="'.$filename.'" method="post">';
-			echo 					'<input type="hidden" value="'.$types[$i].'" name="type"/>';
-			echo 					'<input type="submit" value="Select" name="select"/>';
-			echo 				'</form>';
-							}
-			echo 			'</td>';
-			echo 			'<td class="type">'.$names[$i].'</td>';
-			echo 			'<td class="how">'.$descriptions[$i].'</td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['score'][$types[$i]]))
-								{
-									echo $_SESSION['score'][$types[$i]];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			}
-			
-			?>
-					<tr class ="score">
-						<td class="select"></td>
-						<td class="type">Total Top</td>
-						<td class="how">The total Score of 1's - 6's</td>
-						<td class="player">
-							<?php echo $topScore;?>
-						</td>
-			 		</tr>
-			
-			 		<tr class ="score">
-			 			<td class="select"></td>
-						<td class="type">Bonus</td>
-						<td class="how">If the total Score of 1's - 6's is over 63 Add 35 Points</td>
-						<td class="player">
-			<?php
-								if (isset($_SESSION['score']['bonus']))
-								{
-									echo $_SESSION['score']['bonus'];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			?>
-			 		<tr class="score">
-			 			<td colspan="3" style="text-align: right;">Total Score</td>
-						<td class="player">
-							<?php echo $totalScore;?>
-						</td>
-					</tr>
-				</table>
+				?>
+						<tr class ="score">
+							<td class="type">Total Top</td>
+							<td class="how">The total Score of 1's - 6's</td>
+							<td class="player">
+								<?php echo $topScore;?>
+							</td>
+						</tr>
+				
+						<tr class ="score">
+							<td class="type">Bonus</td>
+							<td class="how">If the total Score of 1's - 6's is over 63 Add 35 Points</td>
+							<td class="player">
+				<?php
+									if (isset($_SESSION['score']['bonus']))
+									{
+										echo $_SESSION['score']['bonus'];
+									}
+				echo 			'</td>';
+				echo 		'</tr>';
+				?>
+						<tr class="score">
+							<td colspan="2" style="text-align: right;">Total Score</td>
+							<td class="player">
+								<?php echo $totalScore;?>
+							</td>
+						</tr>
+					</table>
+				</div>
 			</div>
 		</div>
 	</body>
