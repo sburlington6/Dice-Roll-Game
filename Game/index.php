@@ -1,11 +1,59 @@
 <?php
 session_start();
 
-$topScore = (isset($_SESSION['topScore']) ? $_SESSION['topScore'] : 0);
-
 $currentFile = $_SERVER["PHP_SELF"];
 $parts = Explode('/', $currentFile);
 $filename = $parts[count($parts) - 1];
+
+$topScore = (isset($_SESSION['topScore']) ? $_SESSION['topScore'] : 0);
+
+$types = array(
+'1',
+'2',
+'3',
+'4',
+'5',
+'6',
+'3kind',
+'4kind',
+'fullHouse',
+'sStraight',
+'lStraight',
+'yahtzee',
+'chance'
+);
+
+$names = array(
+"1's",
+"2's",
+"3's",
+"4's",
+"5's",
+"6's",
+"3 of a Kind",
+"4 of a Kind",
+"Full House",
+"Small Straight",
+"Large Straight",
+"Yahtzee",
+"Chance",
+);
+
+$descriptions = array(
+"Add up all of the 1's",
+"Add up all of the 2's",
+"Add up all of the 3's",
+"Add up all of the 4's",
+"Add up all of the 5's",
+"Add up all of the 6's",
+"Total of All Dice When You Have at Least Three of One Number",
+"Total of All Dice When You Have at Least Four of One Number",
+"Gives You 25 Points When You Have Three of One Number And Two of Another Number (or Five of One number)",
+"Gives You 30 Points When You Have a Sequence of Four Numbers ex. 2,3,4,5",
+"Gives You 40 Points When You Have a Sequence of Five Numbers ex. 2,3,4,5,6",
+"Gives You 50 Points When You Have Five of a Kind",
+"Adds the Total of All Dice"
+);
 
 if (isset($_POST['newGame']))
 {
@@ -88,43 +136,50 @@ elseif (isset($_POST['roll']) AND $_SESSION['roll'] = 3)
 	echo 'you cant roll anymore';
 }
 
+function score($type)
+{
+	
+}
+
 if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
 {
-	for ($i=1;$i<=6;$i++)
+	score($_POST['type']);
+}
+
+if ($_SESSION['roll'] > 0 AND isset($_POST['select']))
+{
+	$type = $_POST['type'];
+	
+	//score 1-6
+	for ($j=1;$j<=5;$j++)
 	{
-		if ($_POST['type'] == $i.'s')
+		if ($_SESSION['die'][$j] == $type)
 		{
-			for ($j=1;$j<=5;$j++)
-			{
-				if ($_SESSION['die'][$j] == $i)
-				{
-					$score = isset($_SESSION['score'][$i]) ? $_SESSION['score'][$i] : "0";
-					$_SESSION['score'][$i] = $score + $i;
-				}
-			}
-			
-			if (!isset($_SESSION['score'][$i]))
-			{
-				$_SESSION['score'][$i] = 0;
-			}
-			
-			
-			for ($j=1;$j<=6;$j++)
-			{
-				if (isset($_SESSION['score'][$j]))
-				{
-					$topScore = $topScore + $_SESSION['score'][$j];
-				}
-			}
-			if (!isset($_SESSION['score']['bonus']) AND $topScore > 63)
-			{
-				$_SESSION['score']['bonus'] = 35;
-			}
-			
-			rollReset();
+			$score = isset($_SESSION['score'][$type]) ? $_SESSION['score'][$type] : "0";
+			$_SESSION['score'][$type] = $score + $type;
 		}
 	}
 	
+	if (!isset($_SESSION['score'][$type]))
+	{
+		$_SESSION['score'][$type] = 0;
+	}
+	
+	for ($j=1;$j<=6;$j++)
+	{
+		if (isset($_SESSION['score'][$j]))
+		{
+			$topScore = $topScore + $_SESSION['score'][$j];
+		}
+	}
+	if (!isset($_SESSION['score']['bonus']) AND $topScore > 63)
+	{
+		$_SESSION['score']['bonus'] = 35;
+	}
+	
+	rollReset();
+	
+	//score 3kind
 	if ($_POST['type'] == '3kind')
 	{
 		$inThere = array(0,0,0,0,0,0,0);
@@ -369,30 +424,31 @@ function rollReset(){
 						<th>Score</th>
 					</tr>
 			<?php
-			for ($i=1;$i<=6;$i++)
+			
+			for ($i=0;$i<count($types);$i++)
 			{
-				?>
-				 	<tr>
-						<td class="select">
-				<?php
-								if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score'][$i]))
+				
+			echo 		'<tr>';
+			echo 			'<td class="select">';
+							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score'][$types[$i]]))
+							{
+			echo 				'<form action="'.$filename.'" method="post">';
+			echo 					'<input type="hidden" value="'.$types[$i].'" name="type"/>';
+			echo 					'<input type="submit" value="Select" name="select"/>';
+			echo 				'</form>';
+							}
+			echo 			'</td>';
+			echo 			'<td class="type">'.$names[$i].'</td>';
+			echo 			'<td class="how">'.$descriptions[$i].'</td>';
+			echo 			'<td class="player">';
+								if (isset($_SESSION['score'][$types[$i]]))
 								{
-				echo 				'<form action="'.$filename.'" method="post">';
-				echo 					'<input type="hidden" value="'.$i.'s" name="type"/>';
-				echo 					'<input type="submit" value="Select" name="select"/>';
-				echo 				'</form>';
+									echo $_SESSION['score'][$types[$i]];
 								}
-				echo 			'</td>';
-				echo 			'<td class="type">'.$i.'\'s</td>';
-				echo 			'<td class="how">Add up all of the '.$i.'\'s</td>';
-				echo 			'<td class="player">';
-									if (isset($_SESSION['score'][$i]))
-									{
-										echo $_SESSION['score'][$i];
-									}
-				echo 	'</td>';
-				echo '</tr>';
+			echo 			'</td>';
+			echo 		'</tr>';
 			}
+			
 			?>
 					<tr class ="score">
 						<td class="select"></td>
@@ -406,7 +462,7 @@ function rollReset(){
 			 		<tr class ="score">
 			 			<td class="select"></td>
 						<td class="type">Bonus</td>
-						<td class="how">If the total Score of 1\'s - 6\'s is over 63 Add 35 Points</td>
+						<td class="how">If the total Score of 1's - 6's is over 63 Add 35 Points</td>
 						<td class="player">
 			<?php
 								if (isset($_SESSION['score']['bonus']))
@@ -415,150 +471,7 @@ function rollReset(){
 								}
 			echo 			'</td>';
 			echo 		'</tr>';
-			
-			echo 		'<tr>';
-			echo 			'<td class="select">';
-							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score']['3kind']))
-							{
-			echo 				'<form action="'.$filename.'" method="post">';
-			echo 					'<input type="hidden" value="3kind" name="type"/>';
-			echo 					'<input type="submit" value="Select" name="select"/>';
-			echo 				'</form>';
-							}
-			echo 			'</td>';
-			echo 			'<td class="type">3 of a Kind</td>';
-			echo 			'<td class="how">Total of All Dice When You Have at Least Three of One Number</td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['score']['3kind']))
-								{
-									echo $_SESSION['score']['3kind'];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			
-			echo 		'<tr>';
-			echo 			'<td class="select">';
-							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score']['4kind']))
-							{
-			echo 				'<form action="'.$filename.'" method="post">';
-			echo 					'<input type="hidden" value="4kind" name="type"/>';
-			echo 					'<input type="submit" value="Select" name="select"/>';
-			echo 				'</form>';
-							}
-			echo 			'</td>';
-			echo 			'<td class="type">4 of a Kind</td>';
-			echo 			'<td class="how">Total of All Dice When You Have at Least Four of One Number</td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['score']['4kind']))
-								{
-									echo $_SESSION['score']['4kind'];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			
-			echo 		'<tr>';
-			echo 			'<td class="select">';
-							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score']['fullHouse']))
-							{
-			echo 				'<form action="'.$filename.'" method="post">';
-			echo 					'<input type="hidden" value="fullHouse" name="type"/>';
-			echo 					'<input type="submit" value="Select" name="select"/>';
-			echo 				'</form>';
-							}
-			echo 			'</td>';
-			echo 			'<td class="type">Full House</td>';
-			echo 			'<td class="how">Gives You 25 Points When You Have Three of One Number And Two of Another Number (or Five of One number) </td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['score']['fullHouse']))
-								{
-									echo $_SESSION['score']['fullHouse'];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			
-			echo 		'<tr>';
-			echo 			'<td class="select">';
-							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score']['sStraight']))
-							{
-			echo 				'<form action="'.$filename.'" method="post">';
-			echo 					'<input type="hidden" value="sStraight" name="type"/>';
-			echo 					'<input type="submit" value="Select" name="select"/>';
-			echo 				'</form>';
-							}
-			echo 			'</td>';
-			echo 			'<td class="type">Small Straight</td>';
-			echo 			'<td class="how">Gives You 30 Points When You Have a Sequence of Four Numbers ex. 2,3,4,5</td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['score']['sStraight']))
-								{
-									echo $_SESSION['score']['sStraight'];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			
-			echo 		'<tr>';
-			echo 			'<td class="select">';
-							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score']['lStraight']))
-							{
-			echo 				'<form action="'.$filename.'" method="post">';
-			echo 					'<input type="hidden" value="lStraight" name="type"/>';
-			echo 					'<input type="submit" value="Select" name="select"/>';
-			echo 				'</form>';
-							}
-			echo 			'</td>';
-			echo 			'<td class="type">Large Straight</td>';
-			echo 			'<td class="how">Gives You 40 Points When You Have a Sequence of Five Numbers ex. 2,3,4,5,6</td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['score']['lStraight']))
-								{
-									echo $_SESSION['score']['lStraight'];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			
-			echo 		'<tr>';
-			echo 			'<td class="select">';
-							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['yahtzee']))
-							{
-			echo 				'<form action="'.$filename.'" method="post">';
-			echo 					'<input type="hidden" value="yahtzee" name="type"/>';
-			echo 					'<input type="submit" value="Select" name="select"/>';
-			echo 				'</form>';
-							}
-			echo 			'</td>';
-			echo 			'<td class="type">Yahtzee</td>';
-			echo 			'<td class="how">Gives You 50 Points When You Have Five of a Kind</td>';
-			echo 			'<td class="player">';
-								if (isset($_SESSION['score']['yahtzee']))
-								{
-									echo $_SESSION['score']['yahtzee'];
-								}
-			echo 			'</td>';
-			echo 		'</tr>';
-			
-			echo 		'<tr>';
-			echo 			'<td class="select">';
-							if ($_SESSION['selection'] != '1' AND !isset($_SESSION['score']['chance']))
-							{
-			echo 				'<form action="'.$filename.'" method="post">';
-			echo 					'<input type="hidden" value="chance" name="type"/>';
-			echo 					'<input type="submit" value="Select" name="select"/>';
-			echo 				'</form>';
-							}
-							?>
-			 			</td>
-			 			<td class="type">Chance</td>
-			 			<td class="how">Adds the Total of All Dice</td>
-			 			<td class="player">
-							<?php
-							if (isset($_SESSION['score']['chance']))
-							{
-								echo $_SESSION['score']['chance'];
-							}
-							?>
-			 			</td>
-			 		</tr>
-			
+			?>
 			 		<tr class="score">
 			 			<td colspan="3" style="text-align: right;">Total Score</td>
 						<td class="player">
